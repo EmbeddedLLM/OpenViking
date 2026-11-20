@@ -19,6 +19,7 @@ const mocks = vi.hoisted(() => ({
   provider: 'opensource',
   uploadProvider: vi.fn(),
   preview: vi.fn(),
+  originalActions: vi.fn(),
   agent: vi.fn(),
   terminal: vi.fn(),
   fetchFsStat: vi.fn(),
@@ -94,7 +95,12 @@ vi.mock('#/features/workbench/resources/components/lazy-file-preview', () => ({
 
 vi.mock(
   '#/features/workbench/resources/components/resource-original-actions',
-  () => ({ ResourceOriginalActions: () => null }),
+  () => ({
+    ResourceOriginalActions: (props: { uri: string; filename?: string }) => {
+      mocks.originalActions(props)
+      return null
+    },
+  }),
 )
 
 vi.mock('#/features/workbench/filesystem/components/context-explorer', () => ({
@@ -147,6 +153,7 @@ describe('filesystem context tree refresh', () => {
     mocks.provider = 'opensource'
     mocks.uploadProvider.mockClear()
     mocks.preview.mockClear()
+    mocks.originalActions.mockClear()
     mocks.agent.mockReset().mockReturnValue(null)
     mocks.terminal.mockReset().mockReturnValue(null)
     mocks.search = { file: firstFile, uri: parentDirectory }
@@ -154,6 +161,17 @@ describe('filesystem context tree refresh', () => {
     mocks.invalidateList.mockReset().mockResolvedValue(undefined)
     mocks.navigate.mockReset()
     mocks.dataManagement.mockReset()
+  })
+
+  it('offers the report actions on a selected HTML file using its exact URI', () => {
+    const report = 'viking://resources/pilot/sample-report.html'
+    mocks.search = { file: report, uri: 'viking://resources/pilot/' }
+    render(<FilesystemRoute />)
+
+    expect(mocks.originalActions).toHaveBeenCalledWith({
+      uri: report,
+      filename: 'sample-report.html',
+    })
   })
 
   it('offers OVPack for the parent resource directory while a file is selected', async () => {

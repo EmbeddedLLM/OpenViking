@@ -5,9 +5,10 @@ PDF, DOCX, PPTX and XLSX. Choose the destination before publishing. The original
 inherits the permissions of that resource. Use a destination with the required
 visibility. Uploads with **Keep original** use the destination's existing ACL.
 
-Once the resource appears in the Filesystem, select its folder. **Download
-original** returns the stored bytes. **Open report** opens the sandboxed HTML
-preview when the preview site is configured. Writers can use **Retry import**
+Once the resource appears in the Filesystem, select its folder or click the
+stored report file itself. **Download original** returns the stored bytes.
+**Open report** opens the sandboxed HTML preview when the preview site is
+configured. Writers can use **Retry import**
 to process the stored original again. Re-importing refreshes the searchable
 tree. An older import without original bytes needs the original file uploaded
 again.

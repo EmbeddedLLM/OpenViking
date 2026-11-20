@@ -49,7 +49,13 @@ async function originalBlob(uri: string): Promise<Blob> {
   return response.data as Blob
 }
 
-export function ResourceOriginalActions({ uri }: { uri: string }) {
+export function ResourceOriginalActions({
+  uri,
+  filename,
+}: {
+  uri: string
+  filename?: string
+}) {
   const { t } = useTranslation('resources')
   const { data: original, refetch } = useQuery({
     queryKey: [
@@ -67,7 +73,9 @@ export function ResourceOriginalActions({ uri }: { uri: string }) {
           throwOnError: true,
         }),
       ),
-    enabled: /^viking:\/\/(?:resources\/|user\/[^/]+\/resources\/)/.test(uri),
+    enabled:
+      !filename &&
+      /^viking:\/\/(?:resources\/|user\/[^/]+\/resources\/)/.test(uri),
     staleTime: 5_000,
   })
   const download = useMutation({
@@ -99,9 +107,10 @@ export function ResourceOriginalActions({ uri }: { uri: string }) {
     onError: () => toast.error(t('original.retryFailed')),
   })
 
-  if (!original) return null
+  const file = filename ? { filename, uri, can_retry: false } : original
+  if (!file) return null
   const previewOrigin = reportPreviewOrigin()
-  const canOpen = previewOrigin && /\.html?$/i.test(original.filename)
+  const canOpen = previewOrigin && /\.html?$/i.test(file.filename)
   const openReport = async () => {
     if (!previewOrigin) return
     const tab = window.open('', '_blank')
@@ -111,17 +120,17 @@ export function ResourceOriginalActions({ uri }: { uri: string }) {
     }
     tab.opener = null
     const page = tab.document
-    page.title = original.filename
+    page.title = file.filename
     page.body.textContent = t('original.loading')
     try {
-      const contents = await (await originalBlob(original.uri)).text()
+      const contents = await (await originalBlob(file.uri)).text()
       if (tab.closed) return
       const frame = page.createElement('iframe')
       // This is the trusted shim on the separate site. It puts the report
       // itself in a second iframe with scripts and an opaque origin.
       frame.sandbox.add('allow-scripts', 'allow-same-origin')
       frame.referrerPolicy = 'no-referrer'
-      frame.title = original.filename
+      frame.title = file.filename
       const target = new URL('/preview.html', previewOrigin)
       target.hash = window.location.origin
       frame.src = target.href
@@ -168,17 +177,17 @@ export function ResourceOriginalActions({ uri }: { uri: string }) {
         size="sm"
         variant="ghost"
         disabled={download.isPending}
-        onClick={() => download.mutate(original)}
+        onClick={() => download.mutate(file)}
       >
         <Download className="size-4" />
         {t('original.download')}
       </Button>
-      {original.can_retry ? (
+      {file.can_retry ? (
         <Button
           size="sm"
           variant="ghost"
           disabled={retry.isPending}
-          onClick={() => retry.mutate(original.filename)}
+          onClick={() => retry.mutate(file.filename)}
         >
           <RotateCw className="size-4" />
           {t('original.retry')}

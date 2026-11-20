@@ -32,6 +32,7 @@ import {
   useVikingFsList,
 } from '#/features/workbench/resources/hooks/viking-fm'
 import { fetchFsStat } from '#/features/workbench/resources/lib/api'
+import { canKeepOriginal } from '#/features/workbench/resources/lib/resource-import-request'
 import {
   fileNameFromUri,
   normalizeDirUri,
@@ -721,9 +722,14 @@ function FilesystemWorkbench() {
               </Button>
             ) : null}
           </div>
-          {canUseLocalTools && selectedIsDirectory && (
-            <ResourceOriginalActions uri={selectedUri} />
-          )}
+          {canUseLocalTools &&
+            (selectedIsDirectory ||
+              (selectedFile && canKeepOriginal(selectedFile.name))) && (
+              <ResourceOriginalActions
+                uri={selectedUri}
+                filename={selectedIsDirectory ? undefined : selectedFile?.name}
+              />
+            )}
           <div className="min-h-0 flex-1">
             <LazyFilePreview
               defaultReadLimit={canUseLocalTools ? -1 : 10000}
