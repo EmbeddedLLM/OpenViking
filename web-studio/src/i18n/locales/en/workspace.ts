@@ -1,5 +1,45 @@
 const workspace = {
   appShell: {
+    mcpAccess: {
+      title: 'MCP Access',
+      description: 'Connect a coding agent to this OpenViking workspace.',
+      endpoint: 'MCP endpoint',
+      copyEndpoint: 'Copy endpoint',
+      identity: 'Connected member',
+      setup: 'Client setup',
+      clientsLabel: 'MCP client',
+      manageConnections: 'Manage connections',
+      copySetup: 'Copy setup',
+      copyWithKey: 'Copy setup with my key',
+      keyHint:
+        'The example uses a placeholder. Copy setup with my key includes your member key. Keep the copied setup private.',
+      missingKey:
+        'Use a member API key for this connection, or replace the placeholder with your own member key.',
+      devMode:
+        'This server is in development mode. Its MCP endpoint accepts connections without a key.',
+      otherMode:
+        'This connection uses a different sign-in method. Follow the MCP authentication guide for your deployment.',
+      noEndpoint:
+        'Select an OpenViking server connection to get its MCP endpoint.',
+      docs: 'MCP authentication guide',
+      clients: {
+        codex: {
+          name: 'Codex',
+          instructions:
+            'Add or replace the openviking entry in ~/.codex/config.toml. Restart Codex and use /mcp to check the connection.',
+        },
+        claude: {
+          name: 'Claude Code',
+          instructions:
+            'Run the command for user scope across your projects. Check the connection with claude mcp list.',
+        },
+        pi: {
+          name: 'Pi',
+          instructions:
+            'Run the command with Pi’s native MCP support. Check the connection with pi mcp list.',
+        },
+      },
+    },
     apiKey: {
       title: 'API Key',
       userId: 'User ID',

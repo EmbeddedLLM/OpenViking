@@ -22,6 +22,7 @@ import {
   MessagesSquareIcon,
   NetworkIcon,
   PanelsTopLeftIcon,
+  PlugIcon,
   ScrollTextIcon,
   SearchIcon,
   SparklesIcon,
@@ -90,6 +91,13 @@ export const NAV_ITEMS: readonly NavItem[] = [
     to: '/skills',
   },
 
+  {
+    icon: PlugIcon,
+    id: 'mcpAccess',
+    section: 'workspace',
+    titleKey: 'mcpAccess.title',
+    to: '/mcp-access',
+  },
   {
     icon: WorkflowIcon,
     id: 'compile',

@@ -13,6 +13,7 @@ import { Route as UsersRouteImport } from './routes/users'
 import { Route as PlaygroundRouteImport } from './routes/playground'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as MemoriesRouteImport } from './routes/memories'
+import { Route as McpAccessRouteImport } from './routes/mcp-access'
 import { Route as GatewayRouteImport } from './routes/gateway'
 import { Route as ConfigRouteImport } from './routes/config'
 import { Route as WatchesRouteRouteImport } from './routes/watches/route'
@@ -90,6 +91,11 @@ const OnboardingRoute = OnboardingRouteImport.update({
 const MemoriesRoute = MemoriesRouteImport.update({
   id: '/memories',
   path: '/memories',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const McpAccessRoute = McpAccessRouteImport.update({
+  id: '/mcp-access',
+  path: '/mcp-access',
   getParentRoute: () => rootRouteImport,
 } as any)
 const GatewayRoute = GatewayRouteImport.update({
@@ -412,6 +418,7 @@ export interface FileRoutesByFullPath {
   '/watches': typeof WatchesRouteRoute
   '/config': typeof ConfigRoute
   '/gateway': typeof GatewayRouteWithChildren
+  '/mcp-access': typeof McpAccessRoute
   '/memories': typeof MemoriesRoute
   '/onboarding': typeof OnboardingRoute
   '/playground': typeof PlaygroundRoute
@@ -472,6 +479,7 @@ export interface FileRoutesByTo {
   '/watches': typeof WatchesRouteRoute
   '/config': typeof ConfigRoute
   '/gateway': typeof GatewayRouteWithChildren
+  '/mcp-access': typeof McpAccessRoute
   '/memories': typeof MemoriesRoute
   '/onboarding': typeof OnboardingRoute
   '/playground': typeof PlaygroundRoute
@@ -534,6 +542,7 @@ export interface FileRoutesById {
   '/watches': typeof WatchesRouteRoute
   '/config': typeof ConfigRoute
   '/gateway': typeof GatewayRouteWithChildren
+  '/mcp-access': typeof McpAccessRoute
   '/memories': typeof MemoriesRoute
   '/onboarding': typeof OnboardingRoute
   '/playground': typeof PlaygroundRoute
@@ -600,6 +609,7 @@ export interface FileRouteTypes {
     | '/watches'
     | '/config'
     | '/gateway'
+    | '/mcp-access'
     | '/memories'
     | '/onboarding'
     | '/playground'
@@ -660,6 +670,7 @@ export interface FileRouteTypes {
     | '/watches'
     | '/config'
     | '/gateway'
+    | '/mcp-access'
     | '/memories'
     | '/onboarding'
     | '/playground'
@@ -721,6 +732,7 @@ export interface FileRouteTypes {
     | '/watches'
     | '/config'
     | '/gateway'
+    | '/mcp-access'
     | '/memories'
     | '/onboarding'
     | '/playground'
@@ -786,6 +798,7 @@ export interface RootRouteChildren {
   WatchesRouteRoute: typeof WatchesRouteRoute
   ConfigRoute: typeof ConfigRoute
   GatewayRoute: typeof GatewayRouteWithChildren
+  McpAccessRoute: typeof McpAccessRoute
   MemoriesRoute: typeof MemoriesRoute
   OnboardingRoute: typeof OnboardingRoute
   PlaygroundRoute: typeof PlaygroundRoute
@@ -828,6 +841,13 @@ declare module '@tanstack/react-router' {
       path: '/memories'
       fullPath: '/memories'
       preLoaderRoute: typeof MemoriesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mcp-access': {
+      id: '/mcp-access'
+      path: '/mcp-access'
+      fullPath: '/mcp-access'
+      preLoaderRoute: typeof McpAccessRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/gateway': {
@@ -1405,6 +1425,7 @@ const rootRouteChildren: RootRouteChildren = {
   WatchesRouteRoute: WatchesRouteRoute,
   ConfigRoute: ConfigRoute,
   GatewayRoute: GatewayRouteWithChildren,
+  McpAccessRoute: McpAccessRoute,
   MemoriesRoute: MemoriesRoute,
   OnboardingRoute: OnboardingRoute,
   PlaygroundRoute: PlaygroundRoute,

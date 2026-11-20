@@ -1,5 +1,43 @@
 const workspace = {
   appShell: {
+    mcpAccess: {
+      title: 'MCP 访问',
+      description: '将编码智能体连接到此 OpenViking 工作区。',
+      endpoint: 'MCP 端点',
+      copyEndpoint: '复制端点',
+      identity: '当前成员',
+      setup: '客户端配置',
+      clientsLabel: 'MCP 客户端',
+      manageConnections: '管理连接',
+      copySetup: '复制配置',
+      copyWithKey: '复制包含我的密钥的配置',
+      keyHint:
+        '示例中显示占位符。复制包含我的密钥的配置会填写成员密钥。请妥善保管复制的配置。',
+      missingKey:
+        '请为此连接使用成员 API 密钥，或将占位符替换为自己的成员密钥。',
+      devMode: '此服务器处于开发模式，MCP 端点接受无密钥连接。',
+      otherMode:
+        '此连接使用其他登录方式。请参阅适用于当前部署的 MCP 身份验证指南。',
+      noEndpoint: '请选择 OpenViking 服务器连接以获取 MCP 端点。',
+      docs: 'MCP 身份验证指南',
+      clients: {
+        codex: {
+          name: 'Codex',
+          instructions:
+            '在 ~/.codex/config.toml 中添加或替换 openviking 配置。重启 Codex 后使用 /mcp 检查连接。',
+        },
+        claude: {
+          name: 'Claude Code',
+          instructions:
+            '运行此命令，配置将适用于当前用户的所有项目。使用 claude mcp list 检查连接。',
+        },
+        pi: {
+          name: 'Pi',
+          instructions:
+            '使用支持原生 MCP 的 Pi 运行此命令。使用 pi mcp list 检查连接。',
+        },
+      },
+    },
     apiKey: {
       title: 'API Key',
       userId: 'User ID',
