@@ -21,6 +21,7 @@ import { useStudioService } from '#/features/connection/hooks/use-studio-service
 import { AddResourceForm } from '#/features/workbench/resources/components/add-resource-page'
 import { FindPalette } from '#/features/workbench/resources/components/find-palette'
 import { LazyFilePreview } from '#/features/workbench/resources/components/lazy-file-preview'
+import { ResourceOriginalActions } from '#/features/workbench/resources/components/resource-original-actions'
 import { UploadTaskDialog } from '#/features/workbench/resources/components/upload-task-dialog'
 import {
   ResourceUploadProvider,
@@ -720,6 +721,9 @@ function FilesystemWorkbench() {
               </Button>
             ) : null}
           </div>
+          {canUseLocalTools && selectedIsDirectory && (
+            <ResourceOriginalActions uri={selectedUri} />
+          )}
           <div className="min-h-0 flex-1">
             <LazyFilePreview
               defaultReadLimit={canUseLocalTools ? -1 : 10000}

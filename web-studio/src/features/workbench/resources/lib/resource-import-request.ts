@@ -134,6 +134,10 @@ export function buildRemoteResourceRequest(
   }
 }
 
+export function canKeepOriginal(filename: string): boolean {
+  return /\.(html?|pdf|docx|pptx|xlsx)$/i.test(filename)
+}
+
 export function buildUploadedResourceRequest(
   tempFileId: string,
   sourceName: string,
@@ -142,11 +146,15 @@ export function buildUploadedResourceRequest(
   const {
     add_type: _addType,
     watch_interval: _watchInterval,
+    keep_original: keepOriginal,
     ...uploadBody
   } = commonBody
 
   return {
     ...uploadBody,
+    ...(keepOriginal && canKeepOriginal(sourceName)
+      ? { keep_original: true }
+      : {}),
     source_name: sourceName,
     temp_file_id: tempFileId.trim(),
   }

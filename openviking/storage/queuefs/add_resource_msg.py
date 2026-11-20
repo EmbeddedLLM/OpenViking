@@ -43,6 +43,7 @@ class AddResourceMsg:
     exclude: Optional[str] = None
     directly_upload_media: bool = True
     preserve_structure: Optional[bool] = None
+    original_filename: Optional[str] = None
     create_parent: bool = False
     allow_local_path_resolution: bool = True
     enforce_public_remote_targets: bool = False
@@ -198,6 +199,7 @@ class AddResourceMsg:
                 if data.get("preserve_structure") is not None
                 else None
             ),
+            original_filename=data.get("original_filename"),
             create_parent=bool(data.get("create_parent", False)),
             allow_local_path_resolution=bool(data.get("allow_local_path_resolution", True)),
             enforce_public_remote_targets=bool(data.get("enforce_public_remote_targets", False)),

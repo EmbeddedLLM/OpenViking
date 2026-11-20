@@ -55,6 +55,23 @@ const BASE_FORM_STATE: ResourceImportFormState = {
 }
 
 describe('resource import request builders', () => {
+  it('only forwards original retention for supported local files', () => {
+    const options = { keep_original: true, parent: 'viking://resources/' }
+    expect(
+      buildUploadedResourceRequest('temp-id', 'report.HTML', options),
+    ).toHaveProperty('keep_original', true)
+    expect(
+      buildUploadedResourceRequest('temp-id', 'deck.pptx', options),
+    ).toHaveProperty('keep_original', true)
+    expect(
+      buildUploadedResourceRequest('temp-id', 'notes.md', options),
+    ).not.toHaveProperty('keep_original')
+    expect(
+      buildUploadedResourceRequest('temp-id', 'report.html', {
+        keep_original: false,
+      }),
+    ).not.toHaveProperty('keep_original')
+  })
   it('serializes native form options in one place', () => {
     expect(
       buildResourceImportCommonBody({

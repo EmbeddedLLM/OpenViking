@@ -63,6 +63,7 @@ class _TokenInfo:
     tag_mode: str
     parse_mode: str
     expires_at: float
+    keep_original: bool = False
     kind: str = "resource"
     skill_target_uri: str = ""
     skill_names: Optional[list[str]] = None
@@ -87,6 +88,7 @@ class ConsumedUploadToken:
     tags: Optional[list[str]] = None
     tag_mode: str = "replace"
     parse_mode: str = "default"
+    keep_original: bool = False
     kind: str = "resource"
     skill_target_uri: str = ""
     skill_names: Optional[list[str]] = None
@@ -115,6 +117,7 @@ class UploadTokenStore:
         tags: Optional[list[str]] = None,
         tag_mode: str = "replace",
         parse_mode: str = "default",
+        keep_original: bool = False,
         kind: str = "resource",
         skill_target_uri: str = "",
         skill_names: Optional[list[str]] = None,
@@ -145,6 +148,7 @@ class UploadTokenStore:
             tag_mode,
             parse_mode,
             expires_at,
+            keep_original,
             kind,
             skill_target_uri,
             skill_names,
@@ -181,6 +185,7 @@ class UploadTokenStore:
             tags=info.tags,
             tag_mode=info.tag_mode,
             parse_mode=info.parse_mode,
+            keep_original=info.keep_original,
             kind=info.kind,
             skill_target_uri=info.skill_target_uri,
             skill_names=info.skill_names,

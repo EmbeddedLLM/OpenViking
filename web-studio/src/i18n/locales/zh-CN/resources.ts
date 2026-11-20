@@ -83,6 +83,9 @@ const resources = {
     title: '请求日志',
   },
   addResource: {
+    keepOriginal: '保留原始文件',
+    keepOriginalHint:
+      '上传 HTML、PDF、Word、PowerPoint 或 Excel 时，将原始文件与可搜索内容一同保存。',
     title: '添加资源',
     description: '上传本地文件到服务器，文件类型通过 magic bytes 自动检测。',
     dropzone: {
@@ -397,6 +400,17 @@ const resources = {
         title: '空目录',
         subtitle: '这一层目前没有可继续展开的子目录',
       },
+    },
+    original: {
+      open: '打开报告',
+      download: '下载原始文件',
+      retry: '重试导入',
+      queued: '导入已排队',
+      fetchFailed: '无法加载原始文件。',
+      retryFailed: '无法重试导入。',
+      popupBlocked: '请允许弹出窗口以打开报告。',
+      loading: '正在加载报告…',
+      processing: '可下载原始文件。导入仍在处理中。',
     },
     filePreview: {
       editFailed: '无法读取完整文件用于编辑。',

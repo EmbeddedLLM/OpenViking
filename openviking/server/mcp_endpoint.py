@@ -1763,6 +1763,7 @@ async def add_resource(
     tag_mode: str = "replace",
     args: Optional[dict[str, Any]] = None,
     acl: Optional[AclSpec] = None,
+    keep_original: bool = False,
 ) -> str:
     """Add a resource to OpenViking. Asynchronous — processing happens in the background.
 
@@ -1801,6 +1802,11 @@ async def add_resource(
     Args:
         path: Remote URL or local filesystem path. Required unless ``temp_file_id`` is set.
         temp_file_id: Server-minted upload id from a prior signed local-file upload.
+        keep_original: Preserve the exact local HTML, PDF, DOCX, PPTX or XLSX alongside
+            searchable content. Use true for team reports. Export self-contained HTML with
+            inline data, styles and scripts. The Studio preview blocks external loads.
+            The upload response returns root_uri and original_uri for sharing.
+            Takes the existing destination ACL.
         add_type: Explicit Connector source type (e.g. "tos", "git"). When set, the
             request routes through the Connector integration (must be enabled
             server-side) and ``path`` is sent verbatim — never treated as a local
@@ -1881,6 +1887,12 @@ async def add_resource(
     if to and parent:
         return _mcp_failure("Error: Cannot specify both 'to' and 'parent' at the same time.")
 
+    if keep_original and (
+        acl is not None or add_type or watch_interval > 0
+        or (not temp_file_id and (not path or is_remote_resource_source(path)))
+    ):
+        return _mcp_failure("keep_original requires a local upload and the existing destination ACL.")
+
     # Branch 1: ingest by temp_file_id. Kept for backward compat / REST-style use — the
     # signed upload now auto-ingests server-side, so agents no longer need this second leg.
     if temp_file_id:
@@ -1901,6 +1913,7 @@ async def add_resource(
                 tags=tags,
                 tag_mode=tag_mode,
                 acl=acl,
+                **({"keep_original": True} if keep_original else {}),
             )
         except OpenVikingError as exc:
             return _mcp_failure(exc)
@@ -1912,6 +1925,12 @@ async def add_resource(
         root_uri = result.get("root_uri", "") if isinstance(result, dict) else ""
         if result.get("status") == "partial":
             return f"Resource partially imported: {root_uri}; failed_files={result.get('failed_files', [])}"
+        original_uri = result.get("original_uri")
+        if original_uri:
+            return (
+                f"Resource: {root_uri}\nOriginal file: {original_uri}\n"
+                f"Task: {result.get('task_id', '')}"
+            )
         return (
             f"Resource added: {root_uri}"
             if root_uri
@@ -2013,6 +2032,7 @@ async def add_resource(
         tag_mode=tag_mode,
         parse_mode=mode.value,
         acl=acl,
+        **({"keep_original": True} if keep_original else {}),
     )
     base_url, url_source = _resolve_public_base_url()
     upload_url = f"{base_url}/api/v1/resources/temp_upload?token={quote(token, safe='')}"

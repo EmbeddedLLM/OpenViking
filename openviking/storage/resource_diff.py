@@ -32,7 +32,7 @@ from enum import Enum
 from typing import Any, Dict, Literal, Mapping, Tuple
 
 from openviking.concurrency import bounded_map
-from openviking.storage.internal_names import is_storage_internal_name
+from openviking.storage.internal_names import ORIGINAL_UPLOAD_DIR, is_storage_internal_name
 from openviking.storage.resource_rnfv import (
     CONTROL_BASENAMES,
     FormalEntry,
@@ -395,7 +395,11 @@ def _is_excluded_rel_path(rel_path: str) -> bool:
     if not rel_path:
         return True
     for segment in rel_path.split("/"):
-        if is_storage_internal_name(segment) or segment in CONTROL_BASENAMES:
+        if (
+            is_storage_internal_name(segment)
+            or segment in CONTROL_BASENAMES
+            or segment == ORIGINAL_UPLOAD_DIR
+        ):
             return True
     return False
 

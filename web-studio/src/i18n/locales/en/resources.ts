@@ -86,6 +86,9 @@ const resources = {
     title: 'Request Logs',
   },
   addResource: {
+    keepOriginal: 'Keep original',
+    keepOriginalHint:
+      'Save the uploaded file alongside the searchable content for HTML, PDF, Word, PowerPoint, and Excel.',
     title: 'Add Resource',
     description:
       'Upload a local file to the server. File type is auto-detected via magic bytes.',
@@ -418,6 +421,18 @@ const resources = {
         subtitle:
           'There are currently no subdirectories to expand at this level',
       },
+    },
+    original: {
+      open: 'Open report',
+      download: 'Download original',
+      retry: 'Retry import',
+      queued: 'Import queued',
+      fetchFailed: 'Could not load the original file.',
+      retryFailed: 'Could not retry the import.',
+      popupBlocked: 'Allow popups to open the report.',
+      loading: 'Loading report…',
+      processing:
+        'The original is ready to download. Import is still processing.',
     },
     filePreview: {
       editFailed: 'Unable to load the complete file for editing.',

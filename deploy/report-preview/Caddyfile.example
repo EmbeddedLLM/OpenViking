@@ -1,0 +1,18 @@
+# Use a separate site from the Studio site. Set both environment variables
+# to HTTPS values and copy only preview.html and preview.js to this web root.
+{$OV_REPORT_PREVIEW_HOST} {
+	header {
+		Content-Security-Policy "default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'unsafe-inline'; frame-src blob:; img-src data:; font-src data:; connect-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors {$OV_STUDIO_ORIGIN}"
+		Referrer-Policy "no-referrer"
+		X-Content-Type-Options "nosniff"
+		Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=(), usb=()"
+	}
+	@previewFiles path /preview.html /preview.js
+	handle @previewFiles {
+		root * /srv/openviking-report-preview
+		file_server
+	}
+	handle {
+		respond 404
+	}
+}

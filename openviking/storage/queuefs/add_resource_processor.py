@@ -300,6 +300,8 @@ class AddResourceProcessor(DequeueHandlerBase):
                         )
                         code = result.get("code")
                         failure_result = {"code": code} if isinstance(code, str) and code else {}
+                        if isinstance(result.get("original_uri"), str):
+                            failure_result["original_uri"] = result["original_uri"]
                         if isinstance(result.get("details"), dict):
                             failure_result["details"] = result["details"]
                         await tracker.fail(

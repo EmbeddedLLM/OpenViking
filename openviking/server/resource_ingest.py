@@ -11,6 +11,7 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 from openviking.core.path_variables import resolve_path_variables
 from openviking.core.uri_validation import validate_content_target_uri
 from openviking.parse.mode import ParseMode
+from openviking.resource.original_upload import retained_upload_name
 from openviking.resource.processing_mode import DEFAULT_PROCESSING_MODE, ProcessingMode
 from openviking.server.identity import RequestContext
 from openviking.server.local_input_guard import require_remote_resource_source
@@ -71,6 +72,7 @@ class AddResourceRequest(BaseModel):
     exclude: Optional[str] = None
     directly_upload_media: bool = True
     preserve_structure: Optional[bool] = None
+    keep_original: bool = False
     args: Dict[str, Any] = Field(default_factory=dict)
     connector_auth_config: Optional[Dict[str, Any]] = None
     telemetry: TelemetryRequest = False
@@ -85,6 +87,8 @@ class AddResourceRequest(BaseModel):
     def check_path_or_temp_file_id(self):
         if not self.path and not self.temp_file_id:
             raise ValueError("Either 'path' or 'temp_file_id' must be provided")
+        if self.keep_original and not self.temp_file_id:
+            raise ValueError("keep_original requires a local file upload")
         return self
 
     @model_validator(mode="after")
@@ -195,6 +199,8 @@ async def ingest_resource_request(
         kwargs["preserve_structure"] = request.preserve_structure
 
     try:
+        if request.keep_original:
+            kwargs["original_filename"] = retained_upload_name(original_filename, request.acl)
         return await resources.add_resource(
             path=path,
             ctx=ctx,
@@ -235,6 +241,7 @@ async def ingest_temp_upload(
     tag_mode: str = "replace",
     parse_mode: ParseMode | str = ParseMode.DEFAULT,
     acl: AclSpec | None = None,
+    keep_original: bool = False,
 ) -> dict[str, Any]:
     """Resolve a temp upload and ingest it as a resource; return the raw add_resource result.
 
@@ -263,6 +270,11 @@ async def ingest_temp_upload(
                 create_parent=bool(parent),
                 reason=reason,
                 source_name=resolved.original_filename,
+                **(
+                    {"original_filename": retained_upload_name(resolved.original_filename, acl)}
+                    if keep_original
+                    else {}
+                ),
                 wait=False,
                 processing_mode=processing_mode,
                 allow_local_path_resolution=True,

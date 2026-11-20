@@ -13,6 +13,7 @@ WORKDIR /app/web-studio
 COPY web-studio/package.json web-studio/package-lock.json ./
 RUN --mount=type=cache,target=/root/.npm,id=npm-${TARGETPLATFORM} npm ci
 COPY web-studio/ ./
+ARG VITE_OV_REPORT_PREVIEW_ORIGIN
 RUN npm run build -- --base=/studio/ \
  && test -f dist/index.html
 

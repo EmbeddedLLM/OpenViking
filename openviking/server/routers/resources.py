@@ -2,6 +2,9 @@
 # SPDX-License-Identifier: AGPL-3.0
 """Resource endpoints for OpenViking HTTP Server."""
 
+import asyncio
+import tempfile
+from pathlib import Path
 from typing import Any, Dict, Literal, Optional
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile
@@ -9,6 +12,12 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from openviking.core.path_variables import resolve_path_variables
 from openviking.core.uri_validation import validate_content_target_uri
+from openviking.pyagfs.exceptions import AGFSNotFoundError
+from openviking.resource.original_upload import (
+    find_original_upload,
+    original_upload_uri,
+    retained_upload_name,
+)
 from openviking.server.auth import get_request_context, get_upload_request_context
 from openviking.server.dependencies import get_service
 from openviking.server.identity import RequestContext
@@ -17,12 +26,12 @@ from openviking.server.resource_ingest import (
     ingest_resource_request,
     ingest_temp_upload,
 )
-from openviking.server.responses import response_from_result
+from openviking.server.responses import Response, response_from_result
 from openviking.server.skill_ingest import ingest_temp_upload_skill, install_skills
 from openviking.server.telemetry import run_operation
 from openviking.server.temp_upload_store import TempUploadStore
 from openviking.telemetry import TelemetryRequest
-from openviking_cli.exceptions import InvalidArgumentError
+from openviking_cli.exceptions import InvalidArgumentError, NotFoundError, PermissionDeniedError
 
 router = APIRouter(prefix="/api/v1", tags=["resources"])
 
@@ -109,6 +118,7 @@ async def temp_upload(
             tag_mode=signed.tag_mode,
             parse_mode=signed.parse_mode,
             acl=signed.acl,
+            **({"keep_original": True} if signed.keep_original else {}),
         )
 
     try:
@@ -166,6 +176,68 @@ async def add_resource(
         fn=_add,
     )
     return response_from_result(execution.result, telemetry=execution.telemetry)
+
+
+@router.get("/resources/original")
+async def get_resource_original(
+    uri: str,
+    _ctx: RequestContext = Depends(get_request_context),
+):
+    """Locate the most recent original upload for a readable resource."""
+    resource_uri = validate_content_target_uri(
+        resolve_path_variables(uri), _ctx, kind="resource", field_name="uri"
+    )
+    fs = get_service().fs
+    try:
+        if not (await fs.stat(resource_uri, ctx=_ctx, skip_count=True)).get("isDir"):
+            return Response(status="ok", result=None)
+        original = await find_original_upload(fs, resource_uri, ctx=_ctx)
+    except (NotFoundError, AGFSNotFoundError):
+        return Response(status="ok", result=None)
+    if original is not None:
+        try:
+            await fs.ensure_write_access(resource_uri, _ctx)
+        except PermissionDeniedError:
+            original["can_retry"] = False
+        else:
+            original["can_retry"] = True
+    return Response(status="ok", result=original)
+
+
+class RetryOriginalRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    uri: str
+    filename: str
+
+
+@router.post("/resources/original/retry")
+async def retry_resource_original(
+    request: RetryOriginalRequest,
+    _ctx: RequestContext = Depends(get_request_context),
+):
+    """Re-import one retained original into its resource using the saved bytes."""
+    uri = validate_content_target_uri(
+        resolve_path_variables(request.uri), _ctx, kind="resource", field_name="uri"
+    )
+    filename = retained_upload_name(request.filename, None)
+    if filename != request.filename:
+        raise InvalidArgumentError("Invalid original filename")
+    service = get_service()
+    await service.fs.ensure_write_access(uri, _ctx)
+    content = await service.fs.read_file_bytes(original_upload_uri(uri, filename), ctx=_ctx)
+    with tempfile.TemporaryDirectory(prefix="ov-original-") as directory:
+        path = Path(directory) / filename
+        await asyncio.to_thread(path.write_bytes, content)
+        result = await service.resources.add_resource(
+            path=str(path),
+            ctx=_ctx,
+            to=uri,
+            source_name=filename,
+            wait=False,
+            allow_local_path_resolution=True,
+        )
+    return response_from_result(result)
 
 
 @router.post("/skills")

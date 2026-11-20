@@ -48,6 +48,7 @@ export type ResourceImportRequest = {
   exclude?: string
   directly_upload_media?: boolean
   preserve_structure?: boolean
+  keep_original?: boolean
   args?: ResourceImportArgs
   telemetry?: boolean | Record<string, boolean>
   watch_interval?: number

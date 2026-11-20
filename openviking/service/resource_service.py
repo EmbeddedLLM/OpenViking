@@ -142,6 +142,7 @@ _ADD_RESOURCE_ARGS_RESERVED_FIELDS = frozenset(
         "exclude",
         "directly_upload_media",
         "preserve_structure",
+        "original_filename",
         "create_parent",
         "telemetry",
         "request_validator",
@@ -958,7 +959,17 @@ class ResourceService:
                 from openviking.parse.understanding_api import PREPARED_FILE_ID_ARG
 
                 internal_kwargs[PREPARED_FILE_ID_ARG] = msg.understanding_file_id
+            original_uri = None
             try:
+                if msg.original_filename:
+                    from openviking.resource.original_upload import save_original_upload
+
+                    if prepared_resource is None or resource_lock is None:
+                        raise InternalError("Original upload has no staged file or target lock")
+                    original_uri = await save_original_upload(
+                        self._viking_fs, msg.root_uri, msg.original_filename,
+                        prepared_resource.path, ctx=ctx, lease_ref=resource_lock,
+                    )
                 async with feishu_auth_scope(
                     self._connector,
                     path=msg.path,
@@ -1005,6 +1016,8 @@ class ResourceService:
                         **internal_kwargs,
                     )
             except BaseException:
+                if prepared_resource is not None:
+                    prepared_resource.cleanup()
                 if msg.cleanup_empty_target_on_failure and resource_lock is not None:
                     await self._cleanup_reserved_target_if_empty(
                         root_uri=msg.root_uri,
@@ -1022,6 +1035,8 @@ class ResourceService:
                     ctx=ctx,
                     resource_lock=resource_lock,
                 )
+            if original_uri is not None:
+                result["original_uri"] = original_uri
             if msg.staged_source is not None or msg.shared_source is not None:
                 result["source_path"] = msg.source_path
             stage_result = stage_callback("processing_queue")
@@ -1290,6 +1305,7 @@ class ResourceService:
                         queued_args["resolved_extension"] = resolved_extension
                     if (
                         mode is ParseMode.DEFAULT
+                        and not processor_kwargs.get("original_filename")
                         and self._resource_processor.should_use_understanding_api(prepared)
                     ):
                         if processor_kwargs.get("temp_file_id"):
@@ -1391,11 +1407,14 @@ class ResourceService:
     ) -> Dict[str, Any]:
         from openviking.storage.queuefs.add_resource_msg import AddResourceMsg
 
-        planned_to_is_directory = to_is_directory if to_is_directory is not None else bool(to)
+        original_filename = processor_kwargs.get("original_filename")
+        planned_to_is_directory = bool(original_filename) or (
+            to_is_directory if to_is_directory is not None else bool(to)
+        )
         target_to_is_exact = bool(to and not is_content_root_uri(to, kind="resource"))
         defer_candidate_resolution = bool(
             (plan.defer_unnamed_target and plan.source_identity.source_name is None and not to)
-            or (mode is ParseMode.NO_SPLIT and not target_to_is_exact)
+            or (mode is ParseMode.NO_SPLIT and not target_to_is_exact and not original_filename)
         )
         root_uri = ""
         resource_lock = None
@@ -1476,6 +1495,7 @@ class ResourceService:
                 exclude=processor_kwargs.get("exclude"),
                 directly_upload_media=bool(processor_kwargs.get("directly_upload_media", True)),
                 preserve_structure=processor_kwargs.get("preserve_structure"),
+                original_filename=original_filename,
                 create_parent=create_parent,
                 source_name=plan.source_identity.source_name,
                 to_is_directory=planned_to_is_directory,
@@ -1576,6 +1596,10 @@ class ResourceService:
             response["watch_id"] = first_watch.task_id
         if not defer_target_resolution:
             response["root_uri"] = root_uri
+            if original_filename:
+                from openviking.resource.original_upload import original_upload_uri
+
+                response["original_uri"] = original_upload_uri(root_uri, original_filename)
         return response
 
     async def _plan_source_job_target(

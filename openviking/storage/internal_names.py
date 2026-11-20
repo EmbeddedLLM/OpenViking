@@ -35,11 +35,15 @@ def is_storage_internal_name(name: str) -> bool:
     )
 
 
+ORIGINAL_UPLOAD_DIR = ".source-original"
+
+
 WEBDAV_RESERVED_FILENAMES = frozenset(
     {
         ".abstract.md",
         ".overview.md",
         ".relations.json",
+        ORIGINAL_UPLOAD_DIR,
         *MULTIWRITE_INTERNAL_FILE_NAMES,
     }
 )

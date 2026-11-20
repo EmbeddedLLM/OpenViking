@@ -13,7 +13,7 @@ from openviking.concurrency import bounded_map
 from openviking.core.namespace import context_type_for_uri
 from openviking.server.error_mapping import is_not_found_error
 from openviking.storage.abstract_overview import body_for_preview
-from openviking.storage.internal_names import is_storage_internal_name
+from openviking.storage.internal_names import ORIGINAL_UPLOAD_DIR, is_storage_internal_name
 from openviking.storage.resource_diff import (
     ContentState,
     IndexState,
@@ -183,7 +183,7 @@ async def build_rfv_snapshot(
             complete = False
             continue
         relative_path = relative.strip("/")
-        if not uri or not relative_path:
+        if not uri or not relative_path or ORIGINAL_UPLOAD_DIR in relative_path.split("/"):
             continue
         name = relative_path.rsplit("/", 1)[-1]
         if _is_sidecar(relative_path):

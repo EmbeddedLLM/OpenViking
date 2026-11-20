@@ -27,7 +27,10 @@ import type { WebResourceOptionsValue } from '#/features/workbench/resources/com
 import { WebResourceOptions } from '#/features/workbench/resources/components/web-resource-options'
 import type { RemoteStartResult } from '#/features/workbench/resources/hooks/use-resource-upload'
 import { useResourceUpload } from '#/features/workbench/resources/hooks/use-resource-upload'
-import { buildResourceImportCommonBody } from '#/features/workbench/resources/lib/resource-import-request'
+import {
+  buildResourceImportCommonBody,
+  canKeepOriginal,
+} from '#/features/workbench/resources/lib/resource-import-request'
 import type { RemoteResourceTypeSelection } from '#/features/workbench/resources/lib/resource-source'
 import { detectRemoteResourceKind } from '#/features/workbench/resources/lib/resource-source'
 import type { RemoteSourceOptionState } from '#/features/workbench/resources/lib/resource-source-strategy'
@@ -114,6 +117,7 @@ export function AddResourceForm({
   const [strict, setStrict] = useState(false)
   const [createParent, setCreateParent] = useState(true)
   const [directlyUploadMedia, setDirectlyUploadMedia] = useState(true)
+  const [keepOriginal, setKeepOriginal] = useState(true)
   const [reason, setReason] = useState('')
   const [instruction, setInstruction] = useState('')
   const [ignoreDirs, setIgnoreDirs] = useState('')
@@ -227,7 +231,7 @@ export function AddResourceForm({
       if (selectedFiles.length === 0) return
       enqueueUploads({
         files: selectedFiles.map(({ file, fileType }) => ({ file, fileType })),
-        commonBody: buildCommonBody(),
+        commonBody: { ...buildCommonBody(), keep_original: keepOriginal },
       })
       setSelectedFiles([])
       onSubmitted?.()
@@ -308,11 +312,32 @@ export function AddResourceForm({
         ) : null}
 
         {activeMode === 'upload' ? (
-          <UploadResourceFields
-            files={selectedFiles}
-            onFilesChange={setSelectedFiles}
-            t={t}
-          />
+          <>
+            <UploadResourceFields
+              files={selectedFiles}
+              onFilesChange={setSelectedFiles}
+              t={t}
+            />
+            {selectedFiles.some(({ file }) => canKeepOriginal(file.name)) ? (
+              <div className="flex items-start gap-2">
+                <Checkbox
+                  id="resource-keep-original"
+                  checked={keepOriginal}
+                  onCheckedChange={(checked) =>
+                    setKeepOriginal(checked === true)
+                  }
+                />
+                <div>
+                  <Label htmlFor="resource-keep-original">
+                    {t('keepOriginal')}
+                  </Label>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {t('keepOriginalHint')}
+                  </p>
+                </div>
+              </div>
+            ) : null}
+          </>
         ) : (
           <RemoteResourceFields
             disabled={remotePhase === 'processing'}

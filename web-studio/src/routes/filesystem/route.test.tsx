@@ -92,6 +92,11 @@ vi.mock('#/features/workbench/resources/components/lazy-file-preview', () => ({
   },
 }))
 
+vi.mock(
+  '#/features/workbench/resources/components/resource-original-actions',
+  () => ({ ResourceOriginalActions: () => null }),
+)
+
 vi.mock('#/features/workbench/filesystem/components/context-explorer', () => ({
   ContextExplorerHeader: ({ onRefresh }: { onRefresh: () => void }) => (
     <button type="button" aria-label={mocks.refreshLabel} onClick={onRefresh} />
